@@ -1,0 +1,255 @@
+{
+  "info": {
+    "name": "Share Market API",
+    "description": "Order splitter API collection with tests",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000"
+    },
+    {
+      "key": "orderId",
+      "value": ""
+    }
+  ],
+  "item": [
+    {
+      "name": "Split Order (default price)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('Allocations returned', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.allocations).to.be.an('array').with.length(2);",
+              "});",
+              "pm.test('Save orderId', function () {",
+              "  const body = pm.response.json();",
+              "  if (body && body.id) { pm.collectionVariables.set('orderId', body.id); }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderType\": \"BUY\",\n  \"amount\": 100,\n  \"portfolio\": [\n    { \"symbol\": \"AAPL\", \"weight\": 0.6 },\n    { \"symbol\": \"TSLA\", \"weight\": 0.4 }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/orders/split",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "orders",
+            "split"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Split Order (with market prices)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+              "pm.test('Price override used', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.allocations[0].priceUsed).to.eql(200.25);",
+              "});",
+              "pm.test('Save orderId', function () {",
+              "  const body = pm.response.json();",
+              "  if (body && body.id) { pm.collectionVariables.set('orderId', body.id); }",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderType\": \"SELL\",\n  \"amount\": 250.75,\n  \"portfolio\": [\n    { \"symbol\": \"AAPL\", \"weight\": 0.5, \"price\": 200.25 },\n    { \"symbol\": \"MSFT\", \"weight\": 0.5, \"price\": 300.5 }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/orders/split",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "orders",
+            "split"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Orders",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Response is array', function () { pm.expect(pm.response.json()).to.be.an('array'); });"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/orders",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "orders"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Order By Id",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+              "pm.test('Returns correct id', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.id).to.eql(pm.collectionVariables.get('orderId'));",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "url": {
+          "raw": "{{baseUrl}}/orders/{{orderId}}",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "orders",
+            "{{orderId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Validation Error (weights not sum to 1)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', function () { pm.response.to.have.status(400); });",
+              "pm.test('Validation message present', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.message).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderType\": \"BUY\",\n  \"amount\": 100,\n  \"portfolio\": [\n    { \"symbol\": \"AAPL\", \"weight\": 0.7 },\n    { \"symbol\": \"TSLA\", \"weight\": 0.4 }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/orders/split",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "orders",
+            "split"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Validation Error (duplicate symbols)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test('Status is 400', function () { pm.response.to.have.status(400); });",
+              "pm.test('Validation message present', function () {",
+              "  const body = pm.response.json();",
+              "  pm.expect(body.message).to.exist;",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"orderType\": \"BUY\",\n  \"amount\": 100,\n  \"portfolio\": [\n    { \"symbol\": \"AAPL\", \"weight\": 0.5 },\n    { \"symbol\": \"AAPL\", \"weight\": 0.5 }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/orders/split",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "orders",
+            "split"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
