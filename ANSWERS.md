@@ -22,6 +22,7 @@ I designed a minimal NestJS (Fastify) API with strict DTO validation, a determin
 - Add structured logging (JSON), tracing (OpenTelemetry), and metrics (Prometheus) instead of console logs.
 - Implement rate limiting per partner and request quotas.
 - Add CI with test coverage gates, SAST, dependency scanning, and containerized deployment.
+- Add Docker packaging for consistent runtime and a Kubernetes deployment profile (HPA, readiness/liveness probes, resource limits) to support scalable, resilient production operations.
 
 ## LLM Usage
 I used an LLM to scaffold the NestJS project structure, propose DTO validation rules, and draft README/ANSWERS content. It helped speed up boilerplate creation and ensure all requirements were reflected in documentation.
